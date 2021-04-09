@@ -32,3 +32,12 @@ spec:
         host: auth-service
         port:
           number: 8080
+  - match:
+    - headers:
+        waitroom-test:
+          exact: travis
+    route:
+    - destination:
+        host: sessionregulator-service
+        port:
+          number: 8080
