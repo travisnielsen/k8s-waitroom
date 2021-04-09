@@ -1,0 +1,91 @@
+# auth-service-deployment-1.0.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-1-0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-service
+      version: "1.0"
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        version: "1.0"
+    spec:
+      containers:
+      - name: auth-service
+        image: trniel/authservice:0.0.2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+# auth-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  labels: 
+    app: auth-service
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: auth-service
+---
+# sessionregulator-service-deployment-1.0.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sessionregulator-service-1-0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sessionregulator-service
+      version: "1.0"
+  template:
+    metadata:
+      labels:
+        app: sessionregulator-service
+        version: "1.0"
+    spec:
+      containers:
+      - name: sessionreulator-service
+        image: trniel/sessionregulator:0.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+# sessionregulator-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: sessionregulator-service
+  labels: 
+    app: sessionregulator-service
+spec:
+  ports:
+  - port: 8080
+    name: http
+  selector:
+    app: sessionregulator-service

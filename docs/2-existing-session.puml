@@ -1,0 +1,23 @@
+@startuml Waitroom (generic) new session with capacity
+
+title 2) Existing session with capacity
+
+autonumber
+hide footbox
+
+Client -> Ingress: request w/ session cookie
+activate Ingress
+
+Ingress -> Ingress: check for session cookie
+note right: A valid session cookie is always allowed through\nregardless of capacity
+Ingress -> Resource: forward request
+deactivate Ingress
+
+activate Resource
+Resource -> Resource: existing session
+Resource --> Ingress: response
+
+deactivate Resource
+Ingress --> Client: response
+
+@enduml

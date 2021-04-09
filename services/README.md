@@ -1,4 +1,4 @@
-# Session Regulator Service
+# Wait Room Demo Services
 
 ## Build, Run, and Publish with Docker
 

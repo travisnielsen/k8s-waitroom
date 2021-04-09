@@ -2,18 +2,11 @@
 
 This is a proof-of-concept application that demonstrates rate limiting for new sessions in a web site
 
-## Design Overview
+## Overview
 
 TBD
 
-## Deployment
+## Deploy
 
-Deploy the AKS cluster
+## Test
 
-Install Istio Mesh
-
-Deploy sample application and session controller
-
-Configure Istio ingress controller
-
-Test

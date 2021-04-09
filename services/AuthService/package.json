@@ -1,7 +1,7 @@
 {
-  "name": "authservice",
+  "name": "sessionregulator",
   "version": "1.0.0",
-  "description": "Sample authentication service that creates a session",
+  "description": "Proof-of-Concept session regulator",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,10 +11,13 @@
   "author": "Travis Nielsen",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "express-session": "^1.17.1"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.11",
+    "@types/express-session": "^1.17.3",
     "typescript": "^4.2.4"
   }
 }
