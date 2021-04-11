@@ -44,29 +44,34 @@ spec:
   selector:
     app: auth-service
 ---
-# sessionregulator-service-deployment-1.0.yaml
+# proxy-service-deployment-1.0.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sessionregulator-service-1-0
+  name: proxy-service-1-0
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: sessionregulator-service
+      app: proxy-service
       version: "1.0"
   template:
     metadata:
       labels:
-        app: sessionregulator-service
+        app: proxy-service
         version: "1.0"
     spec:
       containers:
-      - name: sessionreulator-service
-        image: trniel/sessionregulator:0.0.1
+      - name: proxy-service
+        image: trniel/proxyservice:0.0.2
         imagePullPolicy: Always
+        env:
+        - name: NEW_SESSION_WINDOW_SECS
+          value: "60"
+        - name: MAX_NEW_SESSIONS_IN_WINDOW
+          value: "5"
         ports:
-        - containerPort: 8080
+        - containerPort: 80
           name: http
         resources:
           requests:
@@ -76,16 +81,16 @@ spec:
             memory: "128Mi"
             cpu: "500m"
 ---
-# sessionregulator-service.yaml
+# proxy-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: sessionregulator-service
+  name: proxy-service
   labels: 
-    app: sessionregulator-service
+    app: proxy-service
 spec:
   ports:
-  - port: 8080
+  - port: 80
     name: http
   selector:
-    app: sessionregulator-service
+    app: proxy-service

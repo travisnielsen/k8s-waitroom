@@ -26,18 +26,18 @@ spec:
   http:
   - match:
     - uri:
-        prefix: /auth
+        prefix: /auth/
     route:
     - destination:
-        host: auth-service
+        host: proxy-service
         port:
-          number: 8080
+          number: 80
   - match:
     - headers:
         waitroom-test:
           exact: travis
     route:
     - destination:
-        host: sessionregulator-service
+        host: proxy-service
         port:
-          number: 8080
+          number: 80
