@@ -63,13 +63,15 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/proxyservice:0.0.2
+        image: trniel/proxyservice:0.0.4
         imagePullPolicy: Always
         env:
         - name: NEW_SESSION_WINDOW_SECS
           value: "60"
         - name: MAX_NEW_SESSIONS_IN_WINDOW
           value: "5"
+        - name: REDIRECT_URL
+          value: "https://exclusive.website"
         ports:
         - containerPort: 80
           name: http
