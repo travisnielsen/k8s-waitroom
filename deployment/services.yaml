@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/proxyservice:0.0.4
+        image: trniel/proxyservice:0.0.5
         imagePullPolicy: Always
         env:
         - name: NEW_SESSION_WINDOW_SECS

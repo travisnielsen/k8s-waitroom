@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "name": "deployment",
+      "path": "deployment"
+    },
+    {
+      "name": "docs",
+      "path": "docs"
+    },    
+    {
+      "name": "img",
+      "path": "img"
+    },
+    {
+      "name": "ProxyService",
+      "path": "services/ProxyService"
+    },
+    {
+      "name": "AuthService",
+      "path": "services/AuthService"
+    }
+  ],
+  "settings": {}
+}
