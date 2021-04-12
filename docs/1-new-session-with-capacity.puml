@@ -1,4 +1,4 @@
-@startuml Waitroom (generic) new session with capacity
+@startuml 1-new-session-with-capacity
 
 title 1) New session with capacity
 
@@ -7,22 +7,23 @@ hide footbox
 
 Client -> Ingress: request
 activate Ingress
-Ingress ->X Ingress: check for session cookie
-Ingress -> SessionRegulator: forward request
+Ingress -> Ingress: check for path match
+Ingress -> ServiceProxy: forward request
 deactivate Ingress
 
-activate SessionRegulator
-SessionRegulator ->X SessionRegulator: check for <b>session-create-block</b> state
-SessionRegulator ->X SessionRegulator: check <b>[new_session_count]</b> > <b>[max_new_sessions_per_min]</b>
-SessionRegulator -> SessionRegulator: increment <b>[new_session_count]</b> for past minute
-SessionRegulator -> Resource: forward request
-deactivate SessionRegulator
+activate ServiceProxy
+ServiceProxy ->X ServiceProxy: check for <b>session-create-block</b> state
+ServiceProxy ->X ServiceProxy: check <b>[new_session_count]</b> > <b>[max_new_sessions_per_min]</b>
+ServiceProxy -> ServiceProxy: increment <b>[new_session_count]</b> for past minute
+ServiceProxy -> ServiceProxy: Add <b>proxy session cookie</b> to header
+ServiceProxy -> Resource: forward request
 
 activate Resource
 Resource -> Resource: create session
-Resource --> Client: response with session cookie
-
+Resource --> ServiceProxy: response
 deactivate Resource
-
+ServiceProxy --> Ingress: response
+deactivate ServiceProxy
+Ingress --> Client: response with <b>proxy session cookie</b>
 
 @enduml

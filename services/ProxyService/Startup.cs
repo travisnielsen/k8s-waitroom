@@ -16,7 +16,8 @@ namespace ProxyService
         private int NEW_SESSION_WINDOW_SECS;
         private int MAX_NEW_SESSIONS_IN_WINDOW;
         private string REDIRECT_URL;
-
+        private int NEW_SESSION_BLOCK_DURATION_MINS;
+        private SessionTracker Tracker;
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
@@ -34,24 +35,6 @@ namespace ProxyService
             // Initialize the reverse proxy from the "ReverseProxy" section of configuration
             proxyBuilder.LoadFromConfig(Configuration.GetSection("ReverseProxy"));
 
-            // TODO: Consider throwing an exteption and shutting down if env vars are not set. Difficult to assume defaults for a given environment.
-
-            // Load new session regulation settings from env
-            bool parseSuccess = Int32.TryParse(Environment.GetEnvironmentVariable("NEW_SESSION_WINDOW_SECS"), out NEW_SESSION_WINDOW_SECS);
-            if (!parseSuccess)
-                NEW_SESSION_WINDOW_SECS = 60;
-            
-            parseSuccess = Int32.TryParse(Environment.GetEnvironmentVariable("MAX_NEW_SESSIONS_IN_WINDOW"), out MAX_NEW_SESSIONS_IN_WINDOW);
-            if (!parseSuccess)
-                MAX_NEW_SESSIONS_IN_WINDOW = 5;
-
-            REDIRECT_URL = Environment.GetEnvironmentVariable("REDIRECT_URL");
-            if (String.IsNullOrEmpty(REDIRECT_URL))
-                REDIRECT_URL = "https://exclusive.website";
-
-            SessionTracker.WindowBeginTime = DateTime.Now;
-            SessionTracker.CurrentNewSessions = 0;
-
             // Enable sessions
             services.AddDistributedMemoryCache();
 
@@ -62,6 +45,17 @@ namespace ProxyService
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+
+            // Load settings from environment variables
+            try
+            {
+                LoadSessionParams();
+                Tracker = new SessionTracker();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,37 +83,53 @@ namespace ProxyService
         /// </summary>
         public Task MyCustomProxyStep(HttpContext context, Func<Task> next)
         {
-            // Set up new SessionTracker values if empty or expired
-            if (DateTime.Now.Subtract(SessionTracker.WindowBeginTime).TotalSeconds > NEW_SESSION_WINDOW_SECS)
+            // Any connection with a valid session cookie is allowed
+            if (!string.IsNullOrEmpty(context.Session.GetString("_name")))
             {
-                SessionTracker.WindowBeginTime = DateTime.Now;
-                SessionTracker.CurrentNewSessions = 0;
-                Console.WriteLine("New session window starting at: " + SessionTracker.WindowBeginTime.ToLocalTime());
-            }
-
-            if (context.Session.GetString("_name") != null)
-            {
-                // The user has an exisitng proxy session. This is not a new connection. Forward the request to the backend.
                 Console.WriteLine("Existing session: " + context.Session.Id);
                 return next();
             }
 
+            // Remove session block if its expired
+            if (Tracker.SessionBlockActive && Tracker.SessionBlockIsExpired())
+            {
+                Tracker.SessionBlockActive = false;
+                Console.WriteLine("Session block removed: " + DateTime.Now.ToLocalTime());
+            }
+                
+
+            // Deny new users during an active session block
+            if (Tracker.SessionBlockActive && !Tracker.SessionBlockIsExpired())
+            {
+                if (context.Session.GetString("_name") == null)
+                {
+                    // This is a new user connecting during an active session block
+                    context.Response.Redirect(REDIRECT_URL);
+                    return context.Response.StartAsync();
+                }
+            }
+            
+            // Create new session window if current one is expired
+            Tracker.RefreshNewSessionWindow(NEW_SESSION_WINDOW_SECS);
+
             // Check if the user has any waitroom session data. Empty / default sessions are pased into HttpContext on each new call.
             // If we are under quota and no existing session cookie exists. Create one.
-            if (string.IsNullOrEmpty(context.Session.GetString("_name")) && SessionTracker.CurrentNewSessions < MAX_NEW_SESSIONS_IN_WINDOW)
+            if (string.IsNullOrEmpty(context.Session.GetString("_name")) && Tracker.WindowNewSessions < MAX_NEW_SESSIONS_IN_WINDOW)
             {
                 // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
                 context.Session.SetString("_name", "waitroom");
-                SessionTracker.CurrentNewSessions += 1;
+                Tracker.WindowNewSessions += 1;
                 Console.WriteLine("New session: " + context.Session.Id);
-                Console.WriteLine("Current new sessions: " + SessionTracker.CurrentNewSessions);
+                Console.WriteLine("Current new sessions: " + Tracker.WindowNewSessions);
                 return next();
             }
             
-            if (SessionTracker.CurrentNewSessions == MAX_NEW_SESSIONS_IN_WINDOW)
+            if (Tracker.WindowNewSessions == MAX_NEW_SESSIONS_IN_WINDOW)
             {
                 // At or exceeded quota for the new session window. Redirect to the virtual wait room
                 // context.Response.WriteAsJsonAsync("test");
+                Tracker.CreateSessionBlock(NEW_SESSION_BLOCK_DURATION_MINS);
+                Console.WriteLine("Session block created: " + DateTime.Now.ToLocalTime());
                 context.Response.Redirect(REDIRECT_URL);
                 return context.Response.StartAsync();
             }
@@ -127,12 +137,21 @@ namespace ProxyService
             return next();
         }
 
-    }
+        private void LoadSessionParams()
+        {
+            bool parseSuccess = Int32.TryParse(Environment.GetEnvironmentVariable("NEW_SESSION_WINDOW_SECS"), out NEW_SESSION_WINDOW_SECS);
+            if (!parseSuccess) throw new Exception("Cannot load value for NEW_SESSION_WINDOW_SECS");
+        
+            parseSuccess = Int32.TryParse(Environment.GetEnvironmentVariable("MAX_NEW_SESSIONS_IN_WINDOW"), out MAX_NEW_SESSIONS_IN_WINDOW);
+            if (!parseSuccess) throw new Exception("Cannot load value for MAX_NEW_SESSIONS_IN_WINDOW");
 
-    static class SessionTracker
-    {
-        public static DateTime WindowBeginTime { get; set; }
-        public static int CurrentNewSessions { get; set; }
+            parseSuccess = Int32.TryParse(Environment.GetEnvironmentVariable("NEW_SESSION_BLOCK_DURATION_MINS"), out NEW_SESSION_BLOCK_DURATION_MINS);
+            if (!parseSuccess) throw new Exception("Cannot load value for NEW_SESSION_BLOCK_DURATION_MINS");
+
+            REDIRECT_URL = Environment.GetEnvironmentVariable("REDIRECT_URL");
+            if (String.IsNullOrEmpty(REDIRECT_URL)) throw new Exception("Cannot load value for REDIRECT_URL");
+        }
+
     }
 
 }

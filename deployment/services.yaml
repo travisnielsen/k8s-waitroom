@@ -68,6 +68,8 @@ spec:
         env:
         - name: NEW_SESSION_WINDOW_SECS
           value: "60"
+        - name: NEW_SESSION_BLOCK_DURATION_MINS
+          value: "1"
         - name: MAX_NEW_SESSIONS_IN_WINDOW
           value: "5"
         - name: REDIRECT_URL

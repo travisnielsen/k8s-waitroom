@@ -1,4 +1,4 @@
-@startuml Waitroom (generic) new session with capacity
+@startuml 3-new-session-no-capacity
 
 title 3) New session reached capacity
 
@@ -8,34 +8,41 @@ hide footbox
 Client -> Ingress: request
 
 activate Ingress
-Ingress ->X Ingress: check for session cookie
-Ingress -> SessionRegulator: forward request
+Ingress -> Ingress: check for path match
+Ingress -> ServiceProxy: forward request
 deactivate Ingress
 
-activate SessionRegulator
-SessionRegulator ->X SessionRegulator: check for <b>session-create-block</b> state
-SessionRegulator -> SessionRegulator: check <b>[new_session_count]</b> > <b>[max_new_sessions_per_min]</b>
-SessionRegulator -> SessionRegulator: set <b>session-create-block</b> state\n<<timestamp>>
-SessionRegulator --> Client: 302 Redirect
-deactivate SessionRegulator
+activate ServiceProxy
+ServiceProxy ->X ServiceProxy: check for <b>session-create-block</b> state
+ServiceProxy -> ServiceProxy: check <b>[new_session_count]</b> > <b>[max_new_sessions_per_min]</b>
+ServiceProxy -> ServiceProxy: set <b>session-create-block</b> state\n<<timestamp>>
+ServiceProxy --> Ingress: redirect (302)
+deactivate ServiceProxy
+Ingress --> Client: redirect (302)
 
-Client -> "Static Page": request
-"Static Page" --> Client: response
-Client -> Client: retry (30 second)
 
-Client -> SessionRegulator: request
-activate SessionRegulator
-SessionRegulator ->X SessionRegulator: check for session cookie
-SessionRegulator -> SessionRegulator: check for <b>session-create-block</b> state
-SessionRegulator -> SessionRegulator: expire <b>session-create-block state</b> if\n<b>[current_time]</b> - <b>[session_block_timestamp]</b> > <b>[session_block_duration]</b>
-SessionRegulator -> SessionRegulator: clear <b>[new_session_count]</b>
-SessionRegulator -> SessionRegulator: increment <b>[new_session_count]</b> for past minute
-SessionRegulator -> Resource: forward request
-deactivate SessionRegulator
+loop 2 times
+    Client -> "Static Page": request
+    "Static Page" --> Client: response
+    Client -> Client: wait and retry (30 second)
+end
+
+Client -> ServiceProxy: request
+activate ServiceProxy
+ServiceProxy ->X ServiceProxy: check for session cookie
+ServiceProxy -> ServiceProxy: check for <b>session-create-block</b> state
+ServiceProxy -> ServiceProxy: expire <b>session-create-block state</b> if\n<b>[current_time]</b> - <b>[session_block_timestamp]</b> > <b>[session_block_duration]</b>
+ServiceProxy -> ServiceProxy: clear <b>[new_session_count]</b>
+ServiceProxy -> ServiceProxy: Add <b>proxy session cookie</b> to header
+ServiceProxy -> ServiceProxy: increment <b>[new_session_count]</b> for past minute
+ServiceProxy -> Resource: forward request
 
 activate Resource
-Resource -> Resource: create session
-Resource --> Client: response with session cookie
+Resource --> ServiceProxy: response
 deactivate Resource
+ServiceProxy --> Ingress: response
+deactivate ServiceProxy
+
+Ingress --> Client: response with <b>proxy session cookie</b>
 
 @enduml

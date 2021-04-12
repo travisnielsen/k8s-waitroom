@@ -1,23 +1,25 @@
-@startuml Waitroom (generic) new session with capacity
+@startuml 2-existing-session
 
-title 2) Existing session with capacity
+title 2) Existing session
 
 autonumber
 hide footbox
 
-Client -> Ingress: request w/ session cookie
+Client -> Ingress: request w/ <b>proxy session cookie</b>
 activate Ingress
 
-Ingress -> Ingress: check for session cookie
-note right: A valid session cookie is always allowed through\nregardless of capacity
-Ingress -> Resource: forward request
+Ingress -> Ingress: check for path match
+Ingress -> ServiceProxy: forward request
 deactivate Ingress
 
-activate Resource
-Resource -> Resource: existing session
-Resource --> Ingress: response
+activate ServiceProxy
+ServiceProxy -> ServiceProxy: existing session (valid cookie)
+note left: A valid proxy session cookie is always allowed through\nregardless of capacity
+ServiceProxy -> Resource: forward request
+Resource --> ServiceProxy: response
+deactivate ServiceProxy
+ServiceProxy --> Ingress: response
 
-deactivate Resource
 Ingress --> Client: response
 
 @enduml

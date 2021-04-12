@@ -41,5 +41,10 @@ kubectl apply -f istio.aks.yaml
 kubectl get all -n istio-system
 ```
 
-## Services and Ingress Configuration
+## Set ingress URL
 
+For convenience, set a URL for the public IP address associated to the Istio Ingress Gateway. This can be done by navigating to the IP address that is prefxied with `kubernetes-` within the AKS resource group and providing a label.
+
+![IP address hostname](../img/set-ingress-url.png)
+
+>NOTE: Configuration of SSL connections is currently not provided in this repo. Unless convigured otherwise, all tests are accomplished over HTTP.
