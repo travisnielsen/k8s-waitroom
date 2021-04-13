@@ -1,21 +1,23 @@
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace ProxyService
 {
-    class SessionTracker
+    public class SessionTracker
     {
         public DateTime WindowBeginTime { get; set; }
         public int WindowNewSessions { get; set; }
         public bool SessionBlockActive { get; set; }
         private DateTime SessionBlockStartTime { get; set; }
         private int SessionBlockDurationMins { get; set; }
+        private readonly ILogger _logger;
 
-        public SessionTracker()
+        public SessionTracker(ILogger<SessionTracker> logger)
         {
+            _logger = logger;
             WindowBeginTime = DateTime.Now;
             WindowNewSessions = 0;
             SessionBlockActive = false;
-
         }
 
         public void CreateSessionBlock(int sessionBlockDurationMins)
@@ -39,7 +41,8 @@ namespace ProxyService
             {
                 WindowBeginTime = DateTime.Now;
                 WindowNewSessions = 0;
-                Console.WriteLine("New session window starting at: " + WindowBeginTime.ToLocalTime());
+                _logger.LogInformation("New session window starting at: " + WindowBeginTime.ToLocalTime());
+
             }
         }
     }
