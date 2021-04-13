@@ -50,7 +50,7 @@ kind: Deployment
 metadata:
   name: proxy-service-1-0
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: proxy-service

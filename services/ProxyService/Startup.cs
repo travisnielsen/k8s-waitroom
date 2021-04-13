@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Yarp.ReverseProxy.Abstractions;
 using Yarp.ReverseProxy.Middleware;
 using Yarp.ReverseProxy.RuntimeModel;
@@ -18,6 +19,7 @@ namespace ProxyService
         private string REDIRECT_URL;
         private int NEW_SESSION_BLOCK_DURATION_MINS;
         private SessionTracker Tracker;
+        private ILogger _logger;
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
@@ -45,22 +47,13 @@ namespace ProxyService
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
-
-            // Load settings from environment variables
-            try
-            {
-                LoadSessionParams();
-                Tracker = new SessionTracker();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
         {
+            _logger = logger;
+
             app.UseRouting();
             app.UseSession();
             app.UseEndpoints(endpoints =>
@@ -76,6 +69,20 @@ namespace ProxyService
                     // proxyPipeline.UseProxyLoadBalancing();
                 });
             });
+
+            // Load settings from environment variables
+            try
+            {
+                LoadSessionParams();
+                Tracker = new SessionTracker();
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e.Message);
+                throw new ApplicationException(e.Message);
+                // Console.WriteLine(e.Message);
+            }
+
         }
 
         /// <summary>
@@ -86,7 +93,8 @@ namespace ProxyService
             // Any connection with a valid session cookie is allowed
             if (!string.IsNullOrEmpty(context.Session.GetString("_name")))
             {
-                Console.WriteLine("Existing session: " + context.Session.Id);
+                _logger.LogInformation("Existing session: " + context.Session.Id);
+                // Console.WriteLine("Existing session: " + context.Session.Id);
                 return next();
             }
 
@@ -94,9 +102,9 @@ namespace ProxyService
             if (Tracker.SessionBlockActive && Tracker.SessionBlockIsExpired())
             {
                 Tracker.SessionBlockActive = false;
-                Console.WriteLine("Session block removed: " + DateTime.Now.ToLocalTime());
+                _logger.LogInformation("Session block removed: " + DateTime.Now.ToLocalTime());
+                // Console.WriteLine("Session block removed: " + DateTime.Now.ToLocalTime());
             }
-                
 
             // Deny new users during an active session block
             if (Tracker.SessionBlockActive && !Tracker.SessionBlockIsExpired())
@@ -105,7 +113,7 @@ namespace ProxyService
                 {
                     // This is a new user connecting during an active session block
                     context.Response.Redirect(REDIRECT_URL);
-                    return context.Response.StartAsync();
+                    return Task.CompletedTask;
                 }
             }
             
@@ -119,8 +127,10 @@ namespace ProxyService
                 // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
                 context.Session.SetString("_name", "waitroom");
                 Tracker.WindowNewSessions += 1;
-                Console.WriteLine("New session: " + context.Session.Id);
-                Console.WriteLine("Current new sessions: " + Tracker.WindowNewSessions);
+                _logger.LogInformation("New session: " + context.Session.Id);
+                // Console.WriteLine("New session: " + context.Session.Id);
+                _logger.LogInformation("Current new sessions: " + Tracker.WindowNewSessions);
+                // Console.WriteLine("Current new sessions: " + Tracker.WindowNewSessions);
                 return next();
             }
             
@@ -129,9 +139,10 @@ namespace ProxyService
                 // At or exceeded quota for the new session window. Redirect to the virtual wait room
                 // context.Response.WriteAsJsonAsync("test");
                 Tracker.CreateSessionBlock(NEW_SESSION_BLOCK_DURATION_MINS);
-                Console.WriteLine("Session block created: " + DateTime.Now.ToLocalTime());
+                _logger.LogInformation("Session block created: " + DateTime.Now.ToLocalTime());
+                // Console.WriteLine("Session block created: " + DateTime.Now.ToLocalTime());
                 context.Response.Redirect(REDIRECT_URL);
-                return context.Response.StartAsync();
+                return Task.CompletedTask;
             }
             
             return next();

@@ -41,3 +41,16 @@ spec:
         host: proxy-service
         port:
           number: 80
+---
+# Each instance of proxy-service is stateless so we need to be sure traffic is forwarded to the same pod
+# See: https://istio.io/latest/docs/reference/config/networking/destination-rule/#LocalityLoadBalancerSetting
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+    name: proxy-service
+spec:
+    host: proxy-service.default.svc.cluster.local
+    trafficPolicy:
+      loadBalancer:
+        consistentHash:
+          useSourceIp: true
