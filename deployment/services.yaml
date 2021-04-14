@@ -75,7 +75,7 @@ spec:
         - name: HTML_FILENAME
           value: "waitroom.html"
         - name: WAITROOM_RESPONSE_CODE
-          value: "577"
+          value: "429"
         ports:
         - containerPort: 80
           name: http
