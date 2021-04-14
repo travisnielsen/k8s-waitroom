@@ -1,24 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Yarp.ReverseProxy.Abstractions;
-using Yarp.ReverseProxy.Middleware;
-using Yarp.ReverseProxy.RuntimeModel;
 
 namespace ProxyService
 {
     public class Startup
     {
-        private int NEW_SESSION_WINDOW_SECS;
-        private int MAX_NEW_SESSIONS_IN_WINDOW;
-        private string REDIRECT_URL;
-        private int NEW_SESSION_BLOCK_DURATION_MINS;
-        private ILogger _logger;
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
@@ -49,6 +38,9 @@ namespace ProxyService
 
             services.AddSingleton<SessionTracker>();
             services.Configure<RateLimitOptions>(options => { Configuration.Bind(options); } );
+
+            // Load HTML page
+            byte[] html = File.ReadAllBytes(Configuration["HTML_FILENAME"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

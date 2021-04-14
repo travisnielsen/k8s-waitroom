@@ -8,4 +8,10 @@
     <PackageReference Include="Yarp.ReverseProxy" Version="1.0.0-preview.10.*" />
    </ItemGroup> 
 
+   <ItemGroup>
+    <EmbeddedResource Include="waitroom.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

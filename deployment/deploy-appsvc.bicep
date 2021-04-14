@@ -1,6 +1,4 @@
-param location string
 param nameprefix string
-
 
 resource appsvc 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: '${nameprefix}-serviceplan'

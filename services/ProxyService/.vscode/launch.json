@@ -23,8 +23,8 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "NEW_SESSION_WINDOW_SECS": "60",
                 "NEW_SESSION_BLOCK_DURATION_MINS": "1",
-                "MAX_NEW_SESSIONS_IN_WINDOW": "5",
-                "REDIRECT_URL": "https://exclusive.website"
+                "MAX_NEW_SESSIONS_IN_WINDOW": "3",
+                "HTML_FILENAME": "waitroom.html"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
