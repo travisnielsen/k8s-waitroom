@@ -25,7 +25,7 @@ docker run -d -P [docker_id]/proxyservice:0.0.1
 docker ps
 ```
 
-Navigate to the `AuthService` folder and run the folloiwng 
+Navigate to the `AuthService` folder and run the following:
 
 ```bash
 docker build -t [docker_id]/authservice:0.0.1 .
