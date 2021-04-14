@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/proxyservice:0.0.5
+        image: trniel/proxyservice:0.0.6
         imagePullPolicy: Always
         env:
         - name: NEW_SESSION_WINDOW_SECS
@@ -72,8 +72,8 @@ spec:
           value: "1"
         - name: MAX_NEW_SESSIONS_IN_WINDOW
           value: "5"
-        - name: REDIRECT_URL
-          value: "https://exclusive.website"
+        - name: HTML_FILENAME
+          value: "waitroom.html"
         ports:
         - containerPort: 80
           name: http
