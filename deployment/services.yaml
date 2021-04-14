@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/proxyservice:0.0.6
+        image: trniel/ratelimiter:0.0.2
         imagePullPolicy: Always
         env:
         - name: NEW_SESSION_WINDOW_SECS
@@ -74,6 +74,8 @@ spec:
           value: "5"
         - name: HTML_FILENAME
           value: "waitroom.html"
+        - name: WAITROOM_RESPONSE_CODE
+          value: "577"
         ports:
         - containerPort: 80
           name: http

@@ -66,9 +66,9 @@ namespace ProxyService
                 if (context.Session.GetString("_name") == null)
                 {
                     // This is a new user connecting during an active session block
-                    // TODO: Respond with a 5xx error code. CDN will pick up this code and render a static page
                     context.Response.ContentLength = _html.Length;
                     context.Response.ContentType = "text/html";
+                    context.Response.StatusCode = _options.WAITROOM_RESPONSE_CODE;
                     return context.Response.Body.WriteAsync(_html).AsTask();
                 }
             }
@@ -91,16 +91,13 @@ namespace ProxyService
             if (_tracker.WindowNewSessions == _options.MAX_NEW_SESSIONS_IN_WINDOW)
             {
                 // At or exceeded quota for the new session window. Redirect to the virtual wait room
-                // context.Response.WriteAsJsonAsync("test");
                 _tracker.CreateSessionBlock(_options.NEW_SESSION_BLOCK_DURATION_MINS);
                 _logger.LogInformation("Session block created: " + DateTime.Now.ToLocalTime());
-                // context.Response.Redirect(_options.REDIRECT_URL);
-                // return Task.CompletedTask;
 
                 context.Response.ContentLength = _html.Length;
                 context.Response.ContentType = "text/html";
+                context.Response.StatusCode = _options.WAITROOM_RESPONSE_CODE;
                 return context.Response.Body.WriteAsync(_html).AsTask();
-
             }
             
             return _next(context);
