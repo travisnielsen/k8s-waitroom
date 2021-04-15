@@ -106,7 +106,6 @@ namespace ProxyService
 
                         _sessionBlockActive = false;
                         _counter = 0;
-
                         _logger.LogInformation("New session window starting at: " + _windowBeginTime.ToLocalTime());
                     }
                 }
