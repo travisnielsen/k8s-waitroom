@@ -13,28 +13,26 @@ namespace ProxyService
         private RequestDelegate _next; 
         private ILogger _logger; 
         private SessionTracker _tracker;
-        private RateLimitOptions _options;
         private byte[] _html;
+        private int _htmlResponseCode;
 
 
-        public RateLimitMiddleware(RequestDelegate next, SessionTracker tracker, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitOptions> options)
+        public RateLimitMiddleware(RequestDelegate next, SessionTracker tracker, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitMiddlewareOptions> options)
         {
             _next = next;
             _logger = logger;
-            _options = options.Value;
             _tracker = tracker;
-            _html = LoadHtml();
-
-            // TODO: Check to make sure options are correclty populated. If not, throw an ApplicationException to halt execution
+            _html = LoadHtml(options.Value.HTML_FILENAME);
+            _htmlResponseCode = options.Value.WAITROOM_RESPONSE_CODE;
         }
 
-        private byte[] LoadHtml()
+        private byte[] LoadHtml(string fileName)
         {
             byte[] html = null;
 
             try
             {
-                html = File.ReadAllBytes(_options.HTML_FILENAME);
+                html = File.ReadAllBytes(fileName);
             }
             catch (Exception e)
             {
@@ -49,63 +47,25 @@ namespace ProxyService
             // Any connection with a valid session cookie is allowed
             if (!string.IsNullOrEmpty(context.Session.GetString("_name")))
             {
-                _logger.LogInformation("Existing session: " + context.Session.Id);
+                // _logger.LogInformation("Existing session: " + context.Session.Id);
                 return _next(context);
             }
 
-            // Remove session block if its expired
-            if (_tracker.SessionBlockActive && _tracker.SessionBlockIsExpired())
+            if (! _tracker.TryAcquireSession())
             {
-                _tracker.SessionBlockActive = false;
-                _logger.LogInformation("Session block removed: " + DateTime.Now.ToLocalTime());
-            }
-
-            // Deny new users during an active session block
-            if (_tracker.SessionBlockActive && !_tracker.SessionBlockIsExpired())
-            {
-                if (context.Session.GetString("_name") == null)
-                {
-                    // This is a new user connecting during an active session block
-                    context.Response.ContentLength = _html.Length;
-                    context.Response.ContentType = "text/html";
-                    context.Response.StatusCode = _options.WAITROOM_RESPONSE_CODE;
-                    return context.Response.Body.WriteAsync(_html).AsTask();
-                }
-            }
-            
-            // Create new session window if current one is expired
-            _tracker.RefreshNewSessionWindow(_options.NEW_SESSION_WINDOW_SECS);
-
-            // Check if the user has any waitroom session data. Empty / default sessions are pased into HttpContext on each new call.
-            // If we are under quota and no existing session cookie exists. Create one.
-            if (string.IsNullOrEmpty(context.Session.GetString("_name")) && _tracker.WindowNewSessions < _options.MAX_NEW_SESSIONS_IN_WINDOW)
-            {
-                // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
-                context.Session.SetString("_name", "waitroom");
-                _tracker.WindowNewSessions += 1;
-                _logger.LogInformation("New session: " + context.Session.Id);
-                _logger.LogInformation("Current new sessions: " + _tracker.WindowNewSessions);
-                return _next(context);
-            }
-            
-            if (_tracker.WindowNewSessions == _options.MAX_NEW_SESSIONS_IN_WINDOW)
-            {
-                // At or exceeded quota for the new session window. Redirect to the virtual wait room
-                _tracker.CreateSessionBlock(_options.NEW_SESSION_BLOCK_DURATION_MINS);
-                _logger.LogInformation("Session block created: " + DateTime.Now.ToLocalTime());
-
+                // This is a new user connecting during an active session block
+                // TODO: Check for context.Session.GetInt("_retries"); Increment this and then do something different in the response - could do some templating here
                 context.Response.ContentLength = _html.Length;
                 context.Response.ContentType = "text/html";
-                context.Response.StatusCode = _options.WAITROOM_RESPONSE_CODE;
+                context.Response.StatusCode = _htmlResponseCode;
                 return context.Response.Body.WriteAsync(_html).AsTask();
             }
             
+            // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
+            context.Session.SetString("_name", "waitroom");
             return _next(context);
+            
         }
-
-
-
-
     }
 
 }

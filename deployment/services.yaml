@@ -66,10 +66,10 @@ spec:
         image: trniel/ratelimiter:0.0.2
         imagePullPolicy: Always
         env:
-        - name: NEW_SESSION_WINDOW_SECS
+        - name: SESSION_WINDOW_DURATION_SECS
           value: "60"
-        - name: NEW_SESSION_BLOCK_DURATION_MINS
-          value: "1"
+        - name: SESSION_BLOCK_DURATION_SECS
+          value: "60"
         - name: MAX_NEW_SESSIONS_IN_WINDOW
           value: "5"
         - name: HTML_FILENAME
@@ -84,7 +84,7 @@ spec:
             memory: "64Mi"
             cpu: "250m"
           limits:
-            memory: "128Mi"
+            memory: "512Mi"
             cpu: "500m"
 ---
 # proxy-service.yaml

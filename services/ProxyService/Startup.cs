@@ -37,7 +37,8 @@ namespace ProxyService
             });
 
             services.AddSingleton<SessionTracker>();
-            services.Configure<RateLimitOptions>(options => { Configuration.Bind(options); } );
+            services.Configure<RateLimitMiddlewareOptions>(options => { Configuration.Bind(options); } );
+            services.Configure<SessionTrackerOptions>(options => { Configuration.Bind(options); } );
 
             // Load HTML page
             byte[] html = File.ReadAllBytes(Configuration["HTML_FILENAME"]);

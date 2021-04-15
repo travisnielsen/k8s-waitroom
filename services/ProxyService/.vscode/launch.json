@@ -21,11 +21,11 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "NEW_SESSION_WINDOW_SECS": "60",
-                "NEW_SESSION_BLOCK_DURATION_MINS": "1",
+                "SESSION_WINDOW_DURATION_SECS": "60",
+                "SESSION_BLOCK_DURATION_SECS": "60",
                 "MAX_NEW_SESSIONS_IN_WINDOW": "3",
                 "HTML_FILENAME": "waitroom.html",
-                "WAITROOM_RESPONSE_CODE": "577"
+                "WAITROOM_RESPONSE_CODE": "429"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
