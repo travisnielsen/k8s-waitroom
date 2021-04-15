@@ -17,25 +17,25 @@ namespace ProxyService
         private bool _sessionBlockActive;
         
         /// <summary>
-		/// Time period for blocking any new user connections
-		/// </summary>
+        /// Time period for blocking any new user connections
+        /// </summary>
         private int _sessionBlockDurationSecs;
 
         /// <summary>
-		/// The time period for measuring new user connections
-		/// </summary>
+        /// The time period for measuring new user connections
+        /// </summary>
         private int _sessionWindowDurationSecs;
 
         /// <summary>
-		/// The maximum number of new sessions in a window
-		/// </summary>
+        /// The maximum number of new sessions in a window
+        /// </summary>
         private int _maxNewSessionsInWindow;
 
         private readonly ILogger _logger;
 
         /// <summary>
-		/// Tracks number of new sessions in the window
-		/// </summary>
+        /// Tracks number of new sessions in the window
+        /// </summary>
         private int _counter;
 
         private object _countLock = new object();
