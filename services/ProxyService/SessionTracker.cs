@@ -7,13 +7,13 @@ namespace ProxyService
     public class SessionTracker
     {
         /// <summary>
-		/// The start time for a session window or a session block
-		/// </summary>        
+        /// The start time for a session window or a session block
+        /// </summary>
         private DateTime _windowBeginTime;
 
         /// <summary>
-		/// Determines if the tracker is currently blocking any new user connections (rate limit)
-		/// </summary>
+        /// Determines if the tracker is currently blocking any new user connections (rate limit)
+        /// </summary>
         private bool _sessionBlockActive;
         
         /// <summary>
