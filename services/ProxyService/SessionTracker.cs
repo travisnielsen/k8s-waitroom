@@ -91,7 +91,6 @@ namespace ProxyService
             }
             else
             {
-                _logger.LogInformation("Current new sessions: " + _counter);
                 return true;
             }
         }
