@@ -63,7 +63,7 @@ namespace ProxyService
         public bool TryAcquireSession()
         {
             RefreshNewSessionWindow();
-            bool setNewSessionLock = false;
+            bool setNewSessionBlock = false;
 
             if (_sessionBlockActive)
                 return false;
@@ -77,20 +77,21 @@ namespace ProxyService
                 {
                     _sessionBlockActive = true;
                     _windowBeginTime = DateTime.Now;
-                    setNewSessionLock = true;
+                    setNewSessionBlock = true;
                 }
                 
                 _counter++;
                 
             }
 
-            if (setNewSessionLock)
+            if (setNewSessionBlock)
             {
-                _logger.LogInformation("Current new sessions: " + _counter);
+                _logger.LogInformation("New session block starting at: " + _windowBeginTime);
                 return false;
             }
             else
             {
+                _logger.LogInformation("Current new sessions: " + _counter);
                 return true;
             }
         }
