@@ -79,8 +79,10 @@ namespace ProxyService
                     _windowBeginTime = DateTime.Now;
                     setNewSessionBlock = true;
                 }
-                
-                _counter++;
+                else
+                {
+                    _counter++;
+                }
             }
 
             if (setNewSessionBlock)
