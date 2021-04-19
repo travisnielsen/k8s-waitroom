@@ -81,7 +81,6 @@ namespace ProxyService
                 }
                 
                 _counter++;
-                
             }
 
             if (setNewSessionBlock)
@@ -102,6 +101,9 @@ namespace ProxyService
 
             if (currentTime.Subtract(_windowBeginTime).TotalSeconds > windowLimit)
             {
+                bool sessionBlockExpried = false;
+                bool newSessionWindow = false;
+                
                 lock (_countLock)
                 {
                     // avoid multiple resets
@@ -111,13 +113,19 @@ namespace ProxyService
                         _windowBeginTime = currentTime;
 
                         if (_sessionBlockActive)
-                            _logger.LogInformation("Session block expired.");    
+                            sessionBlockExpried = true;   
 
                         _sessionBlockActive = false;
                         _counter = 0;
-                        _logger.LogInformation("New session window starting at: " + _windowBeginTime.ToLocalTime());
+                        newSessionWindow = true;
                     }
                 }
+
+                if (sessionBlockExpried)
+                    _logger.LogInformation("Session block expired.");    
+
+                if (newSessionWindow)
+                    _logger.LogInformation("New session window starting at: " + _windowBeginTime.ToLocalTime());
             }
         }
 
