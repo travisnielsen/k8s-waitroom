@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -42,18 +45,25 @@ namespace ProxyService
             return html;
         }
 
-        public Task Invoke(HttpContext context)
+        public Task Invoke(HttpContext context, ITempDataProvider cookieData)
         {
             // Proxy all traffic to the backend if rate limiting is disabled
             if (System.Environment.GetEnvironmentVariable("RATE_LIMIT_ENABLED").ToLower() == "false")
                 return _next(context);
 
             // Any connection with a valid session cookie is allowed
+            if (cookieData.LoadTempData(context).ContainsKey("_currentUser"))
+            {
+                return _next(context);
+            }
+
+            /*
             if (!string.IsNullOrEmpty(context.Session.GetString("_name")))
             {
                 // _logger.LogInformation("Existing session: " + context.Session.Id);
                 return _next(context);
             }
+            */
 
             if (! _tracker.TryAcquireSession())
             {
@@ -66,9 +76,11 @@ namespace ProxyService
             }
             
             // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
-            context.Session.SetString("_name", "waitroom");
+            // context.Session.SetString("_name", "waitroom");
+            IDictionary<string, object> data = new Dictionary<string, object>();
+            data.Add("_currentUser", Guid.NewGuid().ToString());
+            cookieData.SaveTempData(context, data);
             return _next(context);
-            
         }
     }
 
