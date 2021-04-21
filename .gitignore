@@ -155,3 +155,6 @@ msbuild.wrn
 
 # ARM template files
 deployment/*.json
+
+# environemnt variable file
+env.txt

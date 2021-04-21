@@ -6,7 +6,7 @@ param dnsPrefix string
 param clusterName string = 'waitroom'
 
 @description('The object id of the service principal to be used for access to Key Vault and Blob Storage.')
-param spObjectId string = 'waitroom'
+param spObjectId string
 
 param location string = resourceGroup().location
 
@@ -19,6 +19,7 @@ param agentCount int = 2
 param agentVMSize string = 'Standard_D2_v3'
 
 // vars
+var aspNetDataProtectionKeyName = 'dataprotection'
 var kubernetesVersion = '1.19.7'
 var subnetRef = '${vn.id}/subnets/${subnetName}'
 var addressPrefix = '20.0.0.0/16'
@@ -89,24 +90,23 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
   }
 }
 
-
 // Key Vault
 module keyVault 'modules/keyvault.bicep' = {
   name: 'keyvault'
   params: {
     aadPrincipalObjectId: spObjectId
+    keyName: aspNetDataProtectionKeyName
   }
 }
 
 // Storage
-module storageAccount 'modules/keyvault.bicep' = {
+module storageAccount 'modules/storage.bicep' = {
   name: 'storage'
   params: {
-    aadPrincipalObjectId: spObjectId
+    containerName: 'proxyservice'
+    aadObjectId: spObjectId
   }
 }
-
-
 
 output id string = aks.id
 output apiServerAddress string = aks.properties.fqdn

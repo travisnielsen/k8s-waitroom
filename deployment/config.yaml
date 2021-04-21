@@ -10,3 +10,8 @@ data:
   MAX_NEW_SESSIONS_IN_WINDOW: "3"
   HTML_FILENAME: "waitroom.html"
   WAITROOM_RESPONSE_CODE: "429"
+  DATAPROTECTION_KEY_URI: "https://[your_vault_instance].vault.azure.net/keys/dataprotection/[your_key_id]"
+  DATAPROTECTION_STORAGE_CONTAINER_URI: "https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml"
+  AZURE_CLIENT_ID: "[your_sp_app_id]"
+  AZURE_TENANT_ID: "[your_aad_tenant_id]"
+  AZURE_CLIENT_SECRET: "[your_sp_secret]"

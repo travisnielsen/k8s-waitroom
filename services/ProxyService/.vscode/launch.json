@@ -26,7 +26,12 @@
                 "SESSION_BLOCK_DURATION_SECS": "60",
                 "MAX_NEW_SESSIONS_IN_WINDOW": "3",
                 "HTML_FILENAME": "waitroom.html",
-                "WAITROOM_RESPONSE_CODE": "429"
+                "WAITROOM_RESPONSE_CODE": "429",
+                "DATAPROTECTION_KEY_URI": "",
+                "DATAPROTECTION_STORAGE_CONTAINER_URI": "",
+                "AZURE_CLIENT_ID": "",
+                "AZURE_TENANT_ID": "",
+                "AZURE_CLIENT_SECRET": ""
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

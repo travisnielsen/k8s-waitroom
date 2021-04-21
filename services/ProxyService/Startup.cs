@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Azure.Extensions.AspNetCore.DataProtection.Blobs;
 using Azure.Core;
 using Azure.Identity;
+using Microsoft.AspNetCore.Http;
 
 namespace ProxyService
 {
@@ -33,12 +34,12 @@ namespace ProxyService
             // Enable sessions
             // services.AddDistributedMemoryCache();
 
-            if (System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToLower() != "development")
+            if (System.Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER").ToLower() != "true")
             {
                 // See: https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#environment-variables
                 TokenCredential credential = new DefaultAzureCredential();
-                string blobContainerUri = "";
-                string keyVaultKeyUri = "";
+                string blobContainerUri = System.Environment.GetEnvironmentVariable("DATAPROTECTION_STORAGE_CONTAINER_URI");
+                string keyVaultKeyUri = System.Environment.GetEnvironmentVariable("DATAPROTECTION_KEY_URI");
                 services.AddDataProtection().PersistKeysToAzureBlobStorage(new Uri(blobContainerUri), credential).ProtectKeysWithAzureKeyVault(new Uri(keyVaultKeyUri), credential);
             }
 
@@ -68,6 +69,12 @@ namespace ProxyService
             app.UseSession();
             app.UseEndpoints(endpoints =>
             {
+                // Health check URI
+                endpoints.MapGet("/api/health", async context =>
+                {
+                    await context.Response.WriteAsync("running");
+                });
+
                 // We can customize the proxy pipeline and add/remove/replace steps
                 endpoints.MapReverseProxy(proxyPipeline =>
                 {

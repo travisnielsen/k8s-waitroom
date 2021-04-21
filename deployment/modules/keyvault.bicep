@@ -2,6 +2,7 @@ param vaultName string = '${uniqueString(resourceGroup().id)}' // must be global
 param location string = resourceGroup().location
 param sku string = 'Standard'
 param aadPrincipalObjectId string
+param keyName string
 
 param accessPolicies array = [
   {
@@ -18,6 +19,10 @@ param accessPolicies array = [
         'Recover'
         'Backup'
         'Restore'
+        'wrapKey'
+        'unwrapKey'
+        'verify'
+        'sign'
       ]
       secrets: [
         'Get'
@@ -77,5 +82,22 @@ resource keyvault 'Microsoft.KeyVault/vaults@2019-09-01' = {
     softDeleteRetentionInDays: softDeleteRetentionInDays
     enableRbacAuthorization: enableRbacAuthorization
     networkAcls: networkAcls
+  }
+}
+
+// create key
+resource key 'Microsoft.KeyVault/vaults/keys@2019-09-01' = {
+  name: '${keyvault.name}/${keyName}'
+  properties: {
+    kty: 'RSA' // key type
+    keyOps: [
+      // key operations
+      'encrypt'
+      'decrypt'
+      'unwrapKey'
+      'wrapKey'
+      'sign'
+    ]
+    keySize: 4096
   }
 }

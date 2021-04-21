@@ -15,13 +15,29 @@ TBD
 
 ## Build and Run Docker Containers
 
+The proxy service requires environment variables when running inside a container. Create a new file called `env.txt` and populate it with the values that match your environment:
+
+```shell
+DATAPROTECTION_KEY_URI=https://[your_vault_name].vault.azure.net/keys/dataprotection/[your_key_id]
+DATAPROTECTION_STORAGE_CONTAINER_URI=https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml
+AZURE_CLIENT_ID=[your_sp_client_id]
+AZURE_TENANT_ID=[your_tenant_id]
+AZURE_CLIENT_SECRET=[your_sp_secret]
+RATE_LIMIT_ENABLED=false
+SESSION_WINDOW_DURATION_SECS=60
+SESSION_BLOCK_DURATION_SECS=60
+MAX_NEW_SESSIONS_IN_WINDOW=3
+HTML_FILENAME=waitroom.html
+WAITROOM_RESPONSE_CODE=429
+```
+
 Use the following comamnds to build a container image and run locally. Be sure to replace `[docker_id]` with your own information.
 
 Navigate to the `ProxyService` folder and run the following commands to build and run the code:
 
 ```bash
 docker build -t [docker_id]/proxyservice:0.0.1 .
-docker run -d -P [docker_id]/proxyservice:0.0.1
+docker run -d -P --env-file env.txt [docker_id]/proxyservice:0.0.1
 docker ps
 ```
 
