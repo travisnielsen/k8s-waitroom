@@ -65,7 +65,9 @@ namespace ProxyService
                 // We can customize the proxy pipeline and add/remove/replace steps
                 endpoints.MapReverseProxy(proxyPipeline =>
                 {
-                    proxyPipeline.UseMiddleware<RateLimitMiddleware>();
+                    if (System.Environment.GetEnvironmentVariable("RATE_LIMIT_ENABLED").ToLower() == "true")
+                        proxyPipeline.UseMiddleware<RateLimitMiddleware>();
+                    
                     // Don't forget to include these two middleware when you make a custom proxy pipeline (if you need them).
                     // proxyPipeline.UseAffinitizedDestinationLookup();
                     // proxyPipeline.UseProxyLoadBalancing();

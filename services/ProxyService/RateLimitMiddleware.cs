@@ -13,15 +13,17 @@ namespace ProxyService
     {
         private RequestDelegate _next; 
         private ILogger _logger; 
+        private ITempDataProvider _cookieData; 
         private SessionTracker _tracker;
         private byte[] _html;
         private int _htmlResponseCode;
 
 
-        public RateLimitMiddleware(RequestDelegate next, SessionTracker tracker, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitMiddlewareOptions> options)
+        public RateLimitMiddleware(RequestDelegate next, SessionTracker tracker, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitMiddlewareOptions> options, ITempDataProvider cookieData)
         {
             _next = next;
             _logger = logger;
+            _cookieData = cookieData;
             _tracker = tracker;
             _html = LoadHtml(options.Value.HTML_FILENAME);
             _htmlResponseCode = options.Value.WAITROOM_RESPONSE_CODE;
@@ -43,14 +45,10 @@ namespace ProxyService
             return html;
         }
 
-        public Task Invoke(HttpContext context, ITempDataProvider cookieData)
+        public Task Invoke(HttpContext context)
         {
-            // Proxy all traffic to the backend if rate limiting is disabled
-            if (System.Environment.GetEnvironmentVariable("RATE_LIMIT_ENABLED").ToLower() == "false")
-                return _next(context);
-
             // Any connection with a valid session cookie is allowed
-            if (cookieData.LoadTempData(context).ContainsKey("_currentUser"))
+            if (_cookieData.LoadTempData(context).ContainsKey("_currentUser"))
             {
                 return _next(context);
             }
@@ -68,7 +66,7 @@ namespace ProxyService
             // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
             IDictionary<string, object> data = new Dictionary<string, object>();
             data.Add("_currentUser", Guid.NewGuid().ToString());
-            cookieData.SaveTempData(context, data);
+            _cookieData.SaveTempData(context, data);
             return _next(context);
         }
     }
