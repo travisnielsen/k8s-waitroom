@@ -1,9 +1,13 @@
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Azure.Extensions.AspNetCore.DataProtection.Blobs;
+using Azure.Core;
+using Azure.Identity;
 
 namespace ProxyService
 {
@@ -28,6 +32,15 @@ namespace ProxyService
 
             // Enable sessions
             // services.AddDistributedMemoryCache();
+
+            if (System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToLower() != "development")
+            {
+                // See: https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#environment-variables
+                TokenCredential credential = new DefaultAzureCredential();
+                string blobContainerUri = "";
+                string keyVaultKeyUri = "";
+                services.AddDataProtection().PersistKeysToAzureBlobStorage(new Uri(blobContainerUri), credential).ProtectKeysWithAzureKeyVault(new Uri(keyVaultKeyUri), credential);
+            }
 
             services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
             services.AddControllersWithViews();
