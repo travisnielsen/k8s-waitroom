@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -57,14 +55,6 @@ namespace ProxyService
                 return _next(context);
             }
 
-            /*
-            if (!string.IsNullOrEmpty(context.Session.GetString("_name")))
-            {
-                // _logger.LogInformation("Existing session: " + context.Session.Id);
-                return _next(context);
-            }
-            */
-
             if (! _tracker.TryAcquireSession())
             {
                 // This is a new user connecting during an active session block
@@ -76,7 +66,6 @@ namespace ProxyService
             }
             
             // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
-            // context.Session.SetString("_name", "waitroom");
             IDictionary<string, object> data = new Dictionary<string, object>();
             data.Add("_currentUser", Guid.NewGuid().ToString());
             cookieData.SaveTempData(context, data);

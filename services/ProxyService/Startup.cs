@@ -31,9 +31,6 @@ namespace ProxyService
             // Initialize the reverse proxy from the "ReverseProxy" section of configuration
             proxyBuilder.LoadFromConfig(Configuration.GetSection("ReverseProxy"));
 
-            // Enable sessions
-            // services.AddDistributedMemoryCache();
-
             if (System.Environment.GetEnvironmentVariable("CLUSTER_MODE").ToLower() == "true")
             {
                 // See: https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#environment-variables
@@ -45,15 +42,6 @@ namespace ProxyService
 
             services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
             services.AddControllersWithViews();
-
-            services.AddSession(options =>
-            {
-                options.Cookie.Name = ".WaitRoom.Session";
-                options.IdleTimeout = TimeSpan.FromHours(1);
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
-            });
-
             services.AddSingleton<SessionTracker>();
             services.Configure<RateLimitMiddlewareOptions>(options => { Configuration.Bind(options); } );
             services.Configure<SessionTrackerOptions>(options => { Configuration.Bind(options); } );
@@ -66,7 +54,6 @@ namespace ProxyService
         public void Configure(IApplicationBuilder app)
         {
             app.UseRouting();
-            app.UseSession();
             app.UseEndpoints(endpoints =>
             {
                 // Health check URI
