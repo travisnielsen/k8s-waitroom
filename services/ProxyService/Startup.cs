@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,7 +27,10 @@ namespace ProxyService
             proxyBuilder.LoadFromConfig(Configuration.GetSection("ReverseProxy"));
 
             // Enable sessions
-            services.AddDistributedMemoryCache();
+            // services.AddDistributedMemoryCache();
+
+            services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
+            services.AddControllersWithViews();
 
             services.AddSession(options =>
             {
