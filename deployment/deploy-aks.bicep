@@ -5,7 +5,9 @@ param dnsPrefix string
 @description('The name of the Managed Cluster resource.')
 param clusterName string = 'waitroom'
 
-@description('Specifies the Azure location where the key vault should be created.')
+@description('The object id of the service principal to be used for access to Key Vault and Blob Storage.')
+param spObjectId string = 'waitroom'
+
 param location string = resourceGroup().location
 
 @minValue(1)
@@ -86,6 +88,25 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
     }
   }
 }
+
+
+// Key Vault
+module keyVault 'modules/keyvault.bicep' = {
+  name: 'keyvault'
+  params: {
+    aadPrincipalObjectId: spObjectId
+  }
+}
+
+// Storage
+module storageAccount 'modules/keyvault.bicep' = {
+  name: 'storage'
+  params: {
+    aadPrincipalObjectId: spObjectId
+  }
+}
+
+
 
 output id string = aks.id
 output apiServerAddress string = aks.properties.fqdn
