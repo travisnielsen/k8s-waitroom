@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxyservice-config
+  namespace: default
+data:
+  RATE_LIMIT_ENABLED: "false"
+  SESSION_WINDOW_DURATION_SECS: "60"
+  SESSION_BLOCK_DURATION_SECS: "60"
+  MAX_NEW_SESSIONS_IN_WINDOW: "3"
+  HTML_FILENAME: "waitroom.html"
+  WAITROOM_RESPONSE_CODE: "429"

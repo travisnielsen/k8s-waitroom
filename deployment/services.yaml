@@ -63,19 +63,11 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/ratelimiter:0.0.2
+        image: trniel/ratelimiter:0.0.4
         imagePullPolicy: Always
-        env:
-        - name: SESSION_WINDOW_DURATION_SECS
-          value: "60"
-        - name: SESSION_BLOCK_DURATION_SECS
-          value: "60"
-        - name: MAX_NEW_SESSIONS_IN_WINDOW
-          value: "5"
-        - name: HTML_FILENAME
-          value: "waitroom.html"
-        - name: WAITROOM_RESPONSE_CODE
-          value: "429"
+        envFrom:
+          - configMapRef:
+              name: proxyservice-config
         ports:
         - containerPort: 80
           name: http

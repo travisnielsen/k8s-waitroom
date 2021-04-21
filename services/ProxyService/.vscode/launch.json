@@ -21,6 +21,7 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
+                "RATE_LIMIT_ENABLED": "true",
                 "SESSION_WINDOW_DURATION_SECS": "60",
                 "SESSION_BLOCK_DURATION_SECS": "60",
                 "MAX_NEW_SESSIONS_IN_WINDOW": "3",

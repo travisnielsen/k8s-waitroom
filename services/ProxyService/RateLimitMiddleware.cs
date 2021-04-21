@@ -44,6 +44,10 @@ namespace ProxyService
 
         public Task Invoke(HttpContext context)
         {
+            // Proxy all traffic to the backend if rate limiting is disabled
+            if (System.Environment.GetEnvironmentVariable("RATE_LIMIT_ENABLED").ToLower() == "false")
+                return _next(context);
+
             // Any connection with a valid session cookie is allowed
             if (!string.IsNullOrEmpty(context.Session.GetString("_name")))
             {
