@@ -34,7 +34,7 @@ namespace ProxyService
             // Enable sessions
             // services.AddDistributedMemoryCache();
 
-            if (System.Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER").ToLower() != "true")
+            if (System.Environment.GetEnvironmentVariable("CLUSTER_MODE").ToLower() != "true")
             {
                 // See: https://docs.microsoft.com/en-us/dotnet/api/overview/azure/identity-readme#environment-variables
                 TokenCredential credential = new DefaultAzureCredential();

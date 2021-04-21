@@ -63,11 +63,13 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/ratelimiter:0.0.4
+        image: trniel/proxyservice:0.0.2
         imagePullPolicy: Always
         envFrom:
           - configMapRef:
               name: proxyservice-config
+            secretRef:
+              name: test
         ports:
         - containerPort: 80
           name: http

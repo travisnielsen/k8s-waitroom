@@ -18,6 +18,7 @@ TBD
 The proxy service requires environment variables when running inside a container. Create a new file called `env.txt` and populate it with the values that match your environment:
 
 ```shell
+CLUSTER_MODE=true
 DATAPROTECTION_KEY_URI=https://[your_vault_name].vault.azure.net/keys/dataprotection/[your_key_id]
 DATAPROTECTION_STORAGE_CONTAINER_URI=https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml
 AZURE_CLIENT_ID=[your_sp_client_id]

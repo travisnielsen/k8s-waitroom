@@ -5,6 +5,7 @@ metadata:
   namespace: default
 data:
   RATE_LIMIT_ENABLED: "false"
+  CLUSTER_MODE: "true"
   SESSION_WINDOW_DURATION_SECS: "60"
   SESSION_BLOCK_DURATION_SECS: "60"
   MAX_NEW_SESSIONS_IN_WINDOW: "3"
