@@ -4,15 +4,15 @@ metadata:
   name: proxyservice-config
   namespace: default
 data:
-  MIDDLEWARE_ENABLED: "true"
-  WAITROOM_ENABLED: "true"
-  CLUSTER_MODE: "true"
-  TRACKING_COOKIE: ""
-  SESSION_WINDOW_DURATION_SECS: "60"
-  SESSION_BLOCK_DURATION_SECS: "60"
-  MAX_NEW_SESSIONS_IN_WINDOW: "3"
-  HTML_FILENAME: "waitroom.html"
-  WAITROOM_RESPONSE_CODE: "429"
+  MIDDLEWARE_ENABLED: "true"  # bypasses all middleware. Proxy only
+  WAITROOM_ENABLED: "true" # returns static html if quota is exceeded if "true". If "false", middleware logs exceeded quota but user experinece is unaffected
+  CLUSTER_MODE: "true" # ensures all instsances of the proxy use a common key for cookie encryption to support connection failover across proxy instances
+  TRACKING_COOKIE: "" # When set, reads value from the cookie as a session ID and includes it in logs for correlation
+  SESSION_WINDOW_DURATION_SECS: "60" # duration of the rolling window for new users
+  SESSION_BLOCK_DURATION_SECS: "60" # duration for "timeout" when session window quota is exceeded
+  MAX_NEW_SESSIONS_IN_WINDOW: "3" # the quota of new users for each session window. This is per-proxy instance.
+  HTML_FILENAME: "waitroom.html" # name of the html file that represents the static page
+  WAITROOM_RESPONSE_CODE: "429" # response code sent to the browser when session window quota has been exceeded
   DATAPROTECTION_KEY_URI: "https://[your_vault_instance].vault.azure.net/keys/dataprotection/[your_key_id]"
   DATAPROTECTION_STORAGE_CONTAINER_URI: "https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml"
   AZURE_CLIENT_ID: "[your_sp_app_id]"
