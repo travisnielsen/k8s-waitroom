@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Azure.Extensions.AspNetCore.DataProtection.Blobs;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.AspNetCore.Http;
@@ -41,6 +40,13 @@ namespace ProxyService
             }
 
             services.AddSingleton<ITempDataProvider, CookieTempDataProvider>();
+            services.Configure<Microsoft.AspNetCore.Mvc.CookieTempDataProviderOptions>(options =>
+            {
+                options.Cookie.Name = ".ProxyData";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.Expiration = TimeSpan.FromHours(8);
+            });
+            
             services.AddControllersWithViews();
             services.AddSingleton<SessionTracker>();
             services.Configure<RateLimitMiddlewareOptions>(options => { Configuration.Bind(options); } );
@@ -65,7 +71,7 @@ namespace ProxyService
                 // We can customize the proxy pipeline and add/remove/replace steps
                 endpoints.MapReverseProxy(proxyPipeline =>
                 {
-                    if (System.Environment.GetEnvironmentVariable("RATE_LIMIT_ENABLED").ToLower() == "true")
+                    if (System.Environment.GetEnvironmentVariable("MIDDLEWARE_ENABLED").ToLower() == "true")
                         proxyPipeline.UseMiddleware<RateLimitMiddleware>();
                     
                     // Don't forget to include these two middleware when you make a custom proxy pipeline (if you need them).

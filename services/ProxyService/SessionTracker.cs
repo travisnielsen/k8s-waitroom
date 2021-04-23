@@ -87,7 +87,7 @@ namespace ProxyService
 
             if (setNewSessionBlock)
             {
-                _logger.LogInformation("New session block starting at: " + _windowBeginTime);
+                _logger.LogWarning("New session block starting at: {startTime}", _windowBeginTime);
                 return false;
             }
             else
@@ -124,10 +124,10 @@ namespace ProxyService
                 }
 
                 if (sessionBlockExpried)
-                    _logger.LogInformation("Session block expired.");    
+                    _logger.LogWarning("Session block expired.");    
 
                 if (newSessionWindow)
-                    _logger.LogInformation("New session window starting at: " + _windowBeginTime.ToLocalTime());
+                    _logger.LogInformation("New session window starting at: {startTime} ", _windowBeginTime.ToLocalTime());
             }
         }
 

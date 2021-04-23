@@ -22,7 +22,9 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "CLUSTER_MODE": "false",
-                "RATE_LIMIT_ENABLED": "true",
+                "MIDDLEWARE_ENABLED": "true",
+                "WAITROOM_ENABLED": "true",
+                "TRACKING_COOKIE": "sid",
                 "SESSION_WINDOW_DURATION_SECS": "60",
                 "SESSION_BLOCK_DURATION_SECS": "60",
                 "MAX_NEW_SESSIONS_IN_WINDOW": "3",

@@ -4,8 +4,10 @@ metadata:
   name: proxyservice-config
   namespace: default
 data:
-  RATE_LIMIT_ENABLED: "false"
+  MIDDLEWARE_ENABLED: "true"
+  WAITROOM_ENABLED: "true"
   CLUSTER_MODE: "true"
+  TRACKING_COOKIE: ""
   SESSION_WINDOW_DURATION_SECS: "60"
   SESSION_BLOCK_DURATION_SECS: "60"
   MAX_NEW_SESSIONS_IN_WINDOW: "3"
