@@ -19,17 +19,17 @@ namespace ProxyService
         /// <summary>
         /// Time period for blocking any new user connections
         /// </summary>
-        private int _sessionBlockDurationSecs;
+        private readonly int _sessionBlockDurationSecs;
 
         /// <summary>
         /// The time period for measuring new user connections
         /// </summary>
-        private int _sessionWindowDurationSecs;
+        private readonly int _sessionWindowDurationSecs;
 
         /// <summary>
         /// The maximum number of new sessions in a window
         /// </summary>
-        private int _maxNewSessionsInWindow;
+        private readonly int _maxNewSessionsInWindow;
 
         private readonly ILogger _logger;
 
