@@ -54,6 +54,9 @@ namespace ProxyService
 
             // Load HTML page
             byte[] html = File.ReadAllBytes(Configuration["HTML_FILENAME"]);
+
+            // Telemetry
+            services.AddApplicationInsightsTelemetry();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
