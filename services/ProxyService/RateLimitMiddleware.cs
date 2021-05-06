@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.ApplicationInsights;
 
 namespace ProxyService
 {
@@ -13,20 +14,23 @@ namespace ProxyService
     {
         private RequestDelegate _next; 
         private ILogger _logger; 
-        private ITempDataProvider _cookieData; 
+        private ITempDataProvider _cookieProvider; 
         private SessionTracker _tracker;
         private byte[] _html;
         private int _htmlResponseCode;
         private bool _waitRoomEnabled;
         private string _trackingCookie;
+        private readonly TelemetryClient _telemetry;
 
-        public RateLimitMiddleware(RequestDelegate next, SessionTracker tracker, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitMiddlewareOptions> options, ITempDataProvider cookieData)
+        public RateLimitMiddleware(RequestDelegate next, SessionTracker tracker, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitMiddlewareOptions> options,
+            ITempDataProvider cookieProvider, TelemetryClient telemetry)
         {
             _next = next;
             _logger = logger;
-            _cookieData = cookieData;
+            _cookieProvider = cookieProvider;
             _tracker = tracker;
             _html = LoadHtml(options.Value.HTML_FILENAME);
+            _telemetry = telemetry;
 
             // Check values and set defaults if missing
             _waitRoomEnabled = options.Value.WAITROOM_ENABLED; // Runtime error at startup if setting does not exist or is invalid
@@ -52,42 +56,78 @@ namespace ProxyService
 
         public Task Invoke(HttpContext context)
         {
-            // Any connection with a valid session cookie is allowed
-            if (_cookieData.LoadTempData(context).ContainsKey("_proxySessionId"))
+            var cookieData = _cookieProvider.LoadTempData(context);
+            bool hasWaitRoomId = cookieData.ContainsKey("_waitroom");
+            object proxyUserId;
+            bool hasUserId = cookieData.TryGetValue("_proxyUserId", out proxyUserId);
+
+            // Any connection with a session ID is allowed
+            if (cookieData.ContainsKey("_proxySession"))
             {
+                if (hasUserId)
+                    _telemetry.Context.User.Id = cookieData["_proxyUserId"].ToString();
+                
                 return _next(context);
             }
 
-            var proxySessionId = context.Request.Cookies[_trackingCookie];
+            // Get or create a user ID for tracking context
+            if (! hasUserId)
+            {
+                string trackingCookieSessionId = context.Request.Cookies[_trackingCookie];
+                proxyUserId = String.IsNullOrEmpty(trackingCookieSessionId) ? Guid.NewGuid().ToString() : trackingCookieSessionId;
+                cookieData.Add("_proxyUserId", proxyUserId);
+            }
 
-            if (string.IsNullOrEmpty(proxySessionId))
-                proxySessionId = Guid.NewGuid().ToString();
+            _telemetry.Context.User.Id = proxyUserId.ToString();
 
             if (! _tracker.TryAcquireSession())
             {
                 // This is a new user connecting during an active session block
-                // TODO: Check for context.Session.GetInt("_retries"); Increment this and then do something different in the response - could do some templating here
 
                 if (_waitRoomEnabled)
                 {
+                    if (! hasWaitRoomId)
+                    {
+                        string waitRoomId = Guid.NewGuid().ToString();
+                        cookieData.Add("_waitroom", waitRoomId);
+                        _cookieProvider.SaveTempData(context, cookieData);
+                        // _logger.LogWarning("User {id} in wait room", proxyUserId);
+                        _telemetry.Context.Operation.Id = waitRoomId;
+                        _telemetry.TrackEvent("waitroom start", new Dictionary<string, string> { { "waitroom_id", waitRoomId } } );
+                    }
+                    else
+                    {
+                        // TODO: Check for context.Session.GetInt("_retries"); Increment this and then do something different in the response - could do some templating here
+
+                        // Track page refresh in telemetry
+                        string waitRoomId = cookieData["_waitroom"].ToString();
+                        _telemetry.Context.Operation.Id = waitRoomId;
+                    }
+                    
                     context.Response.ContentLength = _html.Length;
                     context.Response.ContentType = "text/html";
                     context.Response.StatusCode = _htmlResponseCode;
-                    _logger.LogWarning("User {id} in wait room", proxySessionId);
                     return context.Response.Body.WriteAsync(_html).AsTask();
                 }
                 else
                 {
-                    _logger.LogWarning("User {id} exceeded quota (waitroom disabled)", proxySessionId);
+                    _logger.LogWarning("User {id} exceeded quota (waitroom disabled)", proxyUserId);
                     return _next(context);
                 }
+            }
 
+            // Clear waitroom data from the proxy cookie
+            if (hasWaitRoomId)
+            {
+                string waitRoomId = cookieData["_waitroom"].ToString();
+                _telemetry.Context.Operation.Id = waitRoomId;
+                _telemetry.TrackEvent("waitroom end", new Dictionary<string, string> { { "waitroom_id", waitRoomId } }  );
+                cookieData.Remove("_waitroom");
+                _cookieProvider.SaveTempData(context, cookieData);
             }
             
-            // Writing a value triggers writing the cookie to preserve session affiation on subsequent calls.
-            IDictionary<string, object> data = new Dictionary<string, object>();
-            data.Add("_proxySessionId", proxySessionId);
-            _cookieData.SaveTempData(context, data);
+            cookieData.Add("_proxySession", "true");
+            _cookieProvider.SaveTempData(context, cookieData);
             return _next(context);
         }
     }

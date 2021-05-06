@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/proxyservice:0.0.1
+        image: trniel/proxyservice:0.0.2
         imagePullPolicy: Always
         envFrom:
           - configMapRef:
