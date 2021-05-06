@@ -90,6 +90,23 @@ resource aks 'Microsoft.ContainerService/managedClusters@2020-09-01' = {
   }
 }
 
+// Log Analytics Workspace
+module logAnalytics 'modules/loganalytics.bicep' = {
+  name: 'loganalytics'
+  params: {
+    name: '${uniqueString(resourceGroup().id)}'
+  }
+}
+
+// Application Insights
+module appInsights 'modules/appinsights.bicep' = {
+  name: 'appinsights'
+  params: {
+    name: '${uniqueString(resourceGroup().id)}'
+    logAnalyticsId: logAnalytics.outputs.id
+  }
+}
+
 // Key Vault
 module keyVault 'modules/keyvault.bicep' = {
   name: 'keyvault'

@@ -158,3 +158,6 @@ deployment/*.json
 
 # environemnt variable file
 env.txt
+
+# VS Code local dev secrets
+launch.json
