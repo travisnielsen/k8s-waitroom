@@ -92,7 +92,7 @@ namespace ProxyService
                         cookieData.Add("_waitroom", waitRoomId);
                         _cookieProvider.SaveTempData(context, cookieData);
                         // _logger.LogWarning("User {id} in wait room", proxyUserId);
-                        _telemetry.Context.Operation.Id = waitRoomId;
+                        _telemetry.Context.Operation.ParentId = waitRoomId;
                         _telemetry.TrackEvent("waitroom start", new Dictionary<string, string> { { "waitroom_id", waitRoomId } } );
                     }
                     else
@@ -101,7 +101,7 @@ namespace ProxyService
 
                         // Track page refresh in telemetry
                         string waitRoomId = cookieData["_waitroom"].ToString();
-                        _telemetry.Context.Operation.Id = waitRoomId;
+                        _telemetry.Context.Operation.ParentId = waitRoomId;
                     }
                     
                     context.Response.ContentLength = _html.Length;
@@ -120,7 +120,7 @@ namespace ProxyService
             if (hasWaitRoomId)
             {
                 string waitRoomId = cookieData["_waitroom"].ToString();
-                _telemetry.Context.Operation.Id = waitRoomId;
+                _telemetry.Context.Operation.ParentId = waitRoomId;
                 _telemetry.TrackEvent("waitroom end", new Dictionary<string, string> { { "waitroom_id", waitRoomId } }  );
                 cookieData.Remove("_waitroom");
                 _cookieProvider.SaveTempData(context, cookieData);
