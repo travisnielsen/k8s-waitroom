@@ -17,5 +17,3 @@ data:
   DATAPROTECTION_STORAGE_CONTAINER_URI: "https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml"
   AZURE_CLIENT_ID: "[your_sp_app_id]"
   AZURE_TENANT_ID: "[your_aad_tenant_id]"
-  AZURE_CLIENT_SECRET: "[your_sp_secret]"
-  APPINSIGHTS_INSTRUMENTATIONKEY: "[your_ai_key]"

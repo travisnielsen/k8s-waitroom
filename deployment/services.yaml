@@ -65,6 +65,17 @@ spec:
       - name: proxy-service
         image: trniel/proxyservice:0.0.2
         imagePullPolicy: Always
+        env:
+          - name: AZURE_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: proxyservice-secrets
+                key: AZURE_CLIENT_SECRET
+          - name: APPINSIGHTS_INSTRUMENTATIONKEY
+            valueFrom:
+              secretKeyRef:
+                name: proxyservice-secrets
+                key: APPINSIGHTS_INSTRUMENTATIONKEY
         envFrom:
           - configMapRef:
               name: proxyservice-config

@@ -79,6 +79,7 @@ namespace ProxyService
             }
 
             _telemetry.Context.User.Id = proxyUserId.ToString();
+            _telemetry.Context.Session.Id = proxyUserId.ToString();
 
             if (! _tracker.TryAcquireSession())
             {
