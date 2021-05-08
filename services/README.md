@@ -27,6 +27,7 @@ DATAPROTECTION_STORAGE_CONTAINER_URI=https://[your_storage_acct_name].blob.core.
 AZURE_CLIENT_ID=[your_sp_client_id]
 AZURE_TENANT_ID=[your_tenant_id]
 AZURE_CLIENT_SECRET=[your_sp_secret]
+APPINSIGHTS_INSTRUMENTATIONKEY=[your_appinsights_key]
 SESSION_WINDOW_DURATION_SECS=60
 SESSION_BLOCK_DURATION_SECS=60
 MAX_NEW_SESSIONS_IN_WINDOW=3
@@ -69,7 +70,47 @@ docker push [docker_id]/authservice:0.0.1
 
 Both services are deployed to Kubernetes using manifest files. Modify [services.yaml](../deployment/services.yaml) hosted in the `deployment` folder to fit any environment requirements you may have. Most aspects of the Virtual Wait Room are controlled via the environment variables witin the `proxy-service`. Pay attention to those values and adjust them as necessary. Additionally, you may need to update the container image locations. Once you have the contents of this file updated, deploy using the following command:
 
+Create a `secrets.yaml` file and update its settings to match your environment.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: proxy-service
+stringData:
+  AZURE_CLIENT_SECRET: "[your_service_principal_secret]"
+  APPINSIGHTS_INSTRUMENTATIONKEY: "[your_ai_key]"
+```
+
+Next, create a configmap file named `config.yaml` and update the values. 
+
 ```bash
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxyservice-config
+  namespace: default
+data:
+  MIDDLEWARE_ENABLED: "true"  # bypasses all middleware. Proxy only
+  WAITROOM_ENABLED: "true" # returns static html if quota is exceeded if "true". If "false", middleware logs exceeded quota but user experinece is unaffected
+  CLUSTER_MODE: "true" # ensures all instsances of the proxy use a common key for cookie encryption to support connection failover across proxy instances
+  TRACKING_COOKIE: "" # When set, reads value from the cookie as a session ID and includes it in logs for correlation
+  SESSION_WINDOW_DURATION_SECS: "60" # duration of the rolling window for new users
+  SESSION_BLOCK_DURATION_SECS: "60" # duration for "timeout" when session window quota is exceeded
+  MAX_NEW_SESSIONS_IN_WINDOW: "3" # the quota of new users for each session window. This is per-proxy instance.
+  HTML_FILENAME: "waitroom.html" # name of the html file that represents the static page
+  WAITROOM_RESPONSE_CODE: "429" # response code sent to the browser when session window quota has been exceeded
+  DATAPROTECTION_KEY_URI: "https://[your_vault_instance].vault.azure.net/keys/dataprotection/[your_key_id]"
+  DATAPROTECTION_STORAGE_CONTAINER_URI: "https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml"
+  AZURE_CLIENT_ID: "[your_sp_app_id]"
+  AZURE_TENANT_ID: "[your_aad_tenant_id]"
+```
+
+Customize the `services.yaml` file provided in the `deployment` folder in this repo as necessary. When completed, deploy the secrets, configmap, and services to your Kubernetes environment:
+
+```bash
+kubectl apply -f secrets.yaml
+kubectl apply -f config.yaml
 kubectl apply -f services.yaml
 ```
 
