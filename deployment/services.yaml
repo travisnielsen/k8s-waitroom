@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: proxy-service
-        image: trniel/proxyservice:0.0.2
+        image: trniel/proxyservice:0.0.1
         imagePullPolicy: Always
         env:
           - name: AZURE_CLIENT_SECRET
@@ -76,6 +76,10 @@ spec:
               secretKeyRef:
                 name: proxyservice-secrets
                 key: APPINSIGHTS_INSTRUMENTATIONKEY
+        volumeMounts:
+        - name: yarpconfig
+          mountPath: /app/config
+          readOnly: true
         envFrom:
           - configMapRef:
               name: proxyservice-config
@@ -89,6 +93,10 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+      volumes:
+      - name: yarpconfig
+        configMap:
+          name: proxyservice-config-yarp
 ---
 # proxy-service.yaml
 apiVersion: v1

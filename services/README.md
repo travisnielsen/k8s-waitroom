@@ -41,7 +41,7 @@ Navigate to the `ProxyService` folder and run the following commands to build an
 
 ```bash
 docker build -t [docker_id]/proxyservice:0.0.1 .
-docker run -d -P --env-file env.txt [docker_id]/proxyservice:0.0.1
+docker run -d -P --env-file env.txt --volume [path-to-yarp-config-dir]:/app/config [docker_id]/proxyservice:0.0.1
 docker ps
 ```
 
@@ -82,7 +82,7 @@ stringData:
   APPINSIGHTS_INSTRUMENTATIONKEY: "[your_ai_key]"
 ```
 
-Next, create a configmap file named `config.yaml` and update the values. 
+All settings for the proxy are externalized into Kubernetes configMap objects. This allows for any setting to be changed in a running environment without having to re-deploy Pods. Create a configmap file named `config.yaml` and update the values:
 
 ```bash
 apiVersion: v1
@@ -104,6 +104,36 @@ data:
   DATAPROTECTION_STORAGE_CONTAINER_URI: "https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml"
   AZURE_CLIENT_ID: "[your_sp_app_id]"
   AZURE_TENANT_ID: "[your_aad_tenant_id]"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxyservice-config-yarp
+  namespace: default
+data:
+  yarp.settings.json: |-
+    {
+      "ReverseProxy": {
+        "Routes": [
+          {
+            "RouteId": "route1",
+            "ClusterId": "cluster1",
+            "Match": {
+              "Path": "{**catch-all}"
+            }
+          }
+        ],
+        "Clusters": {
+          "cluster1": {
+            "Destinations": {
+              "cluster1/destination1": {
+                "Address": "http://auth-service:8080"
+              }
+            }
+          }
+        }
+      }
+    }
 ```
 
 Customize the `services.yaml` file provided in the `deployment` folder in this repo as necessary. When completed, deploy the secrets, configmap, and services to your Kubernetes environment:
