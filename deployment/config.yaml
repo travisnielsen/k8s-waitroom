@@ -17,3 +17,33 @@ data:
   DATAPROTECTION_STORAGE_CONTAINER_URI: "https://[your_storage_acct_name].blob.core.windows.net/proxyservice/keys.xml"
   AZURE_CLIENT_ID: "[your_sp_app_id]"
   AZURE_TENANT_ID: "[your_aad_tenant_id]"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxyservice-config-yarp
+  namespace: default
+data:
+  yarp.settings.json: |-
+    {
+      "ReverseProxy": {
+        "Routes": [
+          {
+            "RouteId": "route1",
+            "ClusterId": "cluster1",
+            "Match": {
+              "Path": "{**catch-all}"
+            }
+          }
+        ],
+        "Clusters": {
+          "cluster1": {
+            "Destinations": {
+              "cluster1/destination1": {
+                "Address": "http://auth-service:8080"
+              }
+            }
+          }
+        }
+      }
+    }
