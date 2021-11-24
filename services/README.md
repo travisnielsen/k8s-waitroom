@@ -4,18 +4,27 @@ This page outlines the steps to locally build and test the services that are par
 
 * [Docker Desktop](https://www.docker.com/products/docker-desktop)
 * [Visual Studio Code](https://code.visualstudio.com/)
-* [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0) - for local debugging
+* [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) - for local debugging
 * [Node JS (v14 LTS)](https://nodejs.org/en/download/) - for local debugging
 
 It is assumed all tools outlined in the [deployment section](../deployment/README.md) are installed and working.
 
 ## Debug Services Locally
 
-TBD
+Open a new terminal window and navigate to the `AuthService` folder. Start the service by running the following commands:
+
+```bash
+npm install
+npm start
+```
+
+The terminal should indicate the service is running on port 8080.
+
+Next, in VS Code navigate to the `.vscode` folder and create a new file called `launch.json`. Copy in the contents provided in `launch.json.sample` and update the values under the `env` section to match your environment. Sample values are populated for most settings. Once you have confirmed all the values, navigate to **Run and Debug** in VS Code and start the **.NET Core Launch (web)(ProxyService)** configuration. This will launch the proxy service with all the environmen variables specified from `launch.json`. You should now be able to navigate to `http://localhost:5001/auth` and receive a response.
 
 ## Build and Run Docker Containers
 
-The proxy service requires environment variables when running inside a container. Create a new file called `env.txt` and populate it with the values that match your environment:
+As shown previously when running locally, the proxy service requires environment variables when deployed to a container. Create a new file called `env.txt` and populate it with the values that match your environment:
 
 ```shell
 MIDDLEWARE_ENABLED=true
