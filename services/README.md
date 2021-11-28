@@ -9,7 +9,7 @@ This page outlines the steps to locally build and test the services that are par
 
 It is assumed all tools outlined in the [deployment section](../deployment/README.md) are installed and working.
 
-## Debug Services Locally
+## Run and Debug Locally
 
 Open a new terminal window and navigate to the `AuthService` folder. Start the service by running the following commands:
 
@@ -20,11 +20,13 @@ npm start
 
 The terminal should indicate the service is running on port 8080.
 
-Next, in VS Code navigate to the `.vscode` folder and create a new file called `launch.json`. Copy in the contents provided in `launch.json.sample` and update the values under the `env` section to match your environment. Sample values are populated for most settings. Once you have confirmed all the values, navigate to **Run and Debug** in VS Code and start the **.NET Core Launch (web)(ProxyService)** configuration. This will launch the proxy service with all the environmen variables specified from `launch.json`. You should now be able to navigate to `http://localhost:5001/auth` and receive a response.
+Next, in VS Code navigate to the `.vscode` folder and create a new file called `launch.json`. Copy in the contents provided in `launch.json.sample` and update the values under the `env` section to match your environment. Sample values are populated for most settings.
 
-## Build and Run Docker Containers
+Once you have confirmed all the values, navigate to **Run and Debug** in VS Code and start the **.NET Core Launch (web)(ProxyService)** configuration. This will launch the proxy service with all the environment variables specified from `launch.json`. You should now be able to navigate to `http://localhost:5001/auth` and receive a response.
 
-As shown previously when running locally, the proxy service requires environment variables when deployed to a container. Create a new file called `env.txt` and populate it with the values that match your environment:
+## Run in Docker Containers
+
+As shown previously, the proxy service requires environment variables. To configure them for a container running locally, create a new file called `env.txt` and populate it with the values that match your environment:
 
 ```shell
 MIDDLEWARE_ENABLED=true
@@ -44,27 +46,28 @@ HTML_FILENAME=waitroom.html
 WAITROOM_RESPONSE_CODE=429
 ```
 
+Next, open the `yarp.settings.json` file under the `config` folder and update the value of line 15 to match your enviornment.
+
 Use the following comamnds to build a container image and run locally. Be sure to replace `[docker_id]` with your own information.
-
-Navigate to the `ProxyService` folder and run the following commands to build and run the code:
-
-```bash
-docker build -t [docker_id]/proxyservice:0.0.1 .
-docker run -d -P --env-file env.txt --volume [path-to-yarp-config-dir]:/app/config [docker_id]/proxyservice:0.0.1
-docker ps
-```
 
 Navigate to the `AuthService` folder and run the following:
 
 ```bash
 docker build -t [docker_id]/authservice:0.0.1 .
-docker run -d -P [docker_id]/authservice:0.0.1
+docker run -d -p 0.0.0.0:8080:8080 [docker_id]/authservice:0.0.1
+```
+
+Navigate to the `ProxyService` folder and run the following:
+
+```bash
+docker build -t [docker_id]/proxyservice:0.0.1 .
+docker run -d -p 0.0.0.0:5000:80 --env-file env.txt --volume [full-path-to-yarp-config-dir]:/app/config [docker_id]/proxyservice:0.0.1
 docker ps
 ```
 
-> NOTE: Docker will automatically assign the service a random port for your workstation. This is shown in the PORTS section of the `docker ps` command results.
+> NOTE: These commands assume you have ports 5000 and 8080 available on your host workstation. Depending on your configuraiton, you may need to adjust the port mapping for the `-p` option.
 
-You should now be able to test accessing the AuthService via the ProxyService via `https://localhost:5001:[port_assigned_by_docker]`
+You should now be able to test access to the AuthService via the ProxyService by nagivating to `https://localhost:5000` in your browser.
 
 ## Publish Docker Images
 

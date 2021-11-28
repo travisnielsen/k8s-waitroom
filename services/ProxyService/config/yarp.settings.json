@@ -12,7 +12,7 @@
       "cluster1": {
         "Destinations": {
           "cluster1/destination1": {
-            "Address": "http://localhost:8080/"
+            "Address": "http://[your_workstation_ip]:8080/"
           }
         }
       }
